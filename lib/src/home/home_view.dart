@@ -18,9 +18,28 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
+  int counter = 0;
   final FocusNode _focusNode = FocusNode();
 
   final inputFieldController = TextEditingController();
+  final Iterator<String> iter = HomeView._str.split(' ').iterator;
+
+  @override
+  void initState() {
+    iter.moveNext();
+    super.initState();
+  }
+
+  void onSpacePressed(KeyEvent event) {
+    String word = inputFieldController.text;
+    if (word.isEmpty) return;
+    inputFieldController.clear();
+    if (word == iter.current) {
+      counter++;
+    }
+    iter.moveNext();
+    setState(() {});
+  }
 
   @override
   void dispose() {
@@ -34,26 +53,31 @@ class _HomeViewState extends State<HomeView> {
       focusNode: _focusNode,
       autofocus: true,
       onKeyEvent: (event) {
-        // print(event);
-        if (event.logicalKey == LogicalKeyboardKey.space) {
-          String word = inputFieldController.text;
-          inputFieldController.clear();
-          print(word);
+        if (event.logicalKey == LogicalKeyboardKey.space &&
+            event is KeyDownEvent) {
+          onSpacePressed(event);
         }
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text("Home"), actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.restorablePushNamed(context, SettingsView.routeName);
-            },
-            icon: const Icon(Icons.settings),
-          )
-        ]),
+        appBar: AppBar(
+          title: const Text("Home"),
+          actions: [
+            IconButton(
+              onPressed: () {
+                Navigator.restorablePushNamed(context, SettingsView.routeName);
+              },
+              icon: const Icon(Icons.settings),
+            )
+          ],
+        ),
         body: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            Center(
+              child: Text('$counter', style: TextStyle(fontSize: 40)),
+            ),
+            Padding(padding: EdgeInsetsDirectional.only(bottom: 100)),
             const FractionallySizedBox(
               widthFactor: 0.5,
               child: Text(
@@ -69,7 +93,7 @@ class _HomeViewState extends State<HomeView> {
                 controller: inputFieldController,
                 style: const TextStyle(fontSize: 30),
                 decoration: InputDecoration(
-                  // hintText: 'Type here..',
+                  hintText: iter.current,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
