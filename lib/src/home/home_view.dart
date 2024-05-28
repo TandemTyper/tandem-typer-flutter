@@ -12,8 +12,10 @@ class HomeView extends StatefulWidget {
 
   final SettingsController controller;
   // static const String _str = 'Lorem ipsum dolor sit amet';
+  // static const String _str =
+  //     'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed viverra sem nulla, a sollicitudin dui ultrices in. Morbi lobortis semper arcu, vel porttitor leo pretium sed. Nullam nisl est, facilisis.';
   static const String _str =
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed viverra sem nulla, a sollicitudin dui ultrices in. Morbi lobortis semper arcu, vel porttitor leo pretium sed. Nullam nisl est, facilisis.';
+      'Hello world this is a test string so it should be much easier to type than the lorem ipsum.';
 
   @override
   State<HomeView> createState() => _HomeViewState();
@@ -26,18 +28,21 @@ class _HomeViewState extends State<HomeView> {
   int _numCorrectWordsTyped = 0;
   Iterator<String> _iter = HomeView._str.split(' ').iterator;
   bool _typing = false;
+  bool _finished = false;
   int _startTime = 0;
   double _wpm = 0;
   Timer? _wpmCalculator;
 
   void start() {
-    _typing = true;
+    _finished = false;
     _startTime = DateTime.now().millisecondsSinceEpoch;
-    _wpmCalculator = Timer.periodic(Duration(seconds: 1), (Timer t) {
+    _wpmCalculator =
+        Timer.periodic(const Duration(milliseconds: 750), (Timer t) {
       _wpm = _numCorrectWordsTyped /
           (DateTime.now().millisecondsSinceEpoch - _startTime) *
           1000 *
           60;
+      print('timer');
       setState(() {});
     });
     setState(() {});
@@ -49,6 +54,7 @@ class _HomeViewState extends State<HomeView> {
     _iter.moveNext();
     _numCorrectWordsTyped = 0;
     _typing = false;
+    _wpmCalculator?.cancel();
     setState(() {});
   }
 
@@ -61,6 +67,9 @@ class _HomeViewState extends State<HomeView> {
     }
     if (!_iter.moveNext()) {
       reset();
+      setState(() {
+        _finished = true;
+      });
     }
     setState(() {});
   }
@@ -106,15 +115,25 @@ class _HomeViewState extends State<HomeView> {
             mainAxisAlignment: MainAxisAlignment.start,
             // crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('$_numCorrectWordsTyped',
-                      style: const TextStyle(fontSize: 40)),
-                  if (_typing) Text('${_wpm.round()}')
-                ],
+              const Padding(padding: EdgeInsetsDirectional.only(bottom: 25)),
+              Visibility(
+                visible: _typing || _finished,
+                maintainSize: true,
+                maintainAnimation: true,
+                maintainState: true,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('$_numCorrectWordsTyped',
+                        style: const TextStyle(fontSize: 40)),
+                    const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20)),
+                    Text('${_wpm.round()}',
+                        style: const TextStyle(fontSize: 30)),
+                  ],
+                ),
               ),
-              const Padding(padding: EdgeInsetsDirectional.only(bottom: 50)),
+              const Padding(padding: EdgeInsetsDirectional.only(bottom: 25)),
               const FractionallySizedBox(
                 widthFactor: 0.5,
                 child: Text(
@@ -129,6 +148,9 @@ class _HomeViewState extends State<HomeView> {
                 child: TextField(
                   onChanged: (value) {
                     if (!_typing) {
+                      setState(() {
+                        _typing = true;
+                      });
                       start();
                     }
                   },
